@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<process-flow id="enableKerberos" name="Enable Kerberos">
+  <process id="gettingStarted" name="Getting Started">
+    <user-task id="gettingStarted" name="Getting Started">
+      <fields>
+        <field name="kdc_type" type="String"/>
+      </fields>
+    </user-task>
+  </process>
+
+  <process id="configureKerberos" name="Configure Kerberos">
+    <user-task id="configureMIT" name="Configure MIT KDC">
+      <condition>InstanceData[kdc_type] == "mit_kdc"</condition>
+    </user-task>
+    <user-task id="configureAD" name="Configure Active Directory">
+      <condition>InstanceData[kdc_type] == "active_directory"</condition>
+    </user-task>
+    <user-task id="configureIPA" name="Configure Free IPA">
+      <condition>InstanceData[kdc_type] == "ipc"</condition>
+    </user-task>
+    <user-task id="configureManual" name="Configure Manual">
+      <condition>InstanceData[kdc_type] == "none"</condition>
+    </user-task>
+  </process>
+
+  <process id="installAndTest" name="Install and Test Kerberos Client">
+    <condition>InstanceData[kdc_type] != "none"</condition>
+    <server-task id="install" name="Install Kerberos Client">
+      <implementation
+        class="org.apache.ambari.server.workflow.task.kerberos.InstallKerberosClient"/>
+    </server-task>
+    <server-task id="test" name="Test Kerberos Client">
+      <implementation class="org.apache.ambari.server.workflow.task.kerberos.TestKerberosClient"/>
+    </server-task>
+  </process>
+
+  <process id="configureIdentities" name="Configure Identities">
+    <user-task id="configureIdentities" name="Configure Identities"/>
+  </process>
+
+  <process id="confirm" name="Confirm Configuration">
+    <user-task id="confirmConfiguration" name="Confirm Configuration"/>
+  </process>
+
+  <process id="stopServices" name="Stop Services">
+    <server-task id="stop" name="Stop Services">
+      <implementation class="org.apache.ambari.server.workflow.task.StopServices"/>
+    </server-task>
+  </process>
+
+  <process id="kerberize" name="Kerberize Cluster">
+    <server-task id="prepare" name="Preparing Operations">
+      <implementation class="org.apache.ambari.server.workflow.task.kerberos.PrepareOperations"/>
+    </server-task>
+    <server-task id="createPrincipals" name="Create Principals">
+      <condition>InstanceData[kdc_type] != "none"</condition>
+      <implementation class="org.apache.ambari.server.workflow.task.kerberos.CreatePrincipals"/>
+    </server-task>
+    <server-task id="createKeytabFiles" name="Create Keytab Files">
+      <condition>InstanceData[kdc_type] != "none"</condition>
+      <implementation class="org.apache.ambari.server.workflow.task.kerberos.CreateKeytabFiles"/>
+    </server-task>
+    <server-task id="distribute" name="Distribute Keytab Files">
+      <condition>InstanceData[kdc_type] != "none"</condition>
+      <implementation
+        class="org.apache.ambari.server.workflow.task.kerberos.DistributeKeytabFiles"/>
+    </server-task>
+    <server-task id="update" name="Update Configurations">
+      <implementation class="org.apache.ambari.server.workflow.task.kerberos.UpdateConfigurations"/>
+    </server-task>
+    <server-task id="finalize" name="Finalize Operations">
+      <implementation class="org.apache.ambari.server.workflow.task.kerberos.FinalizeOperations"/>
+    </server-task>
+  </process>
+
+  <process id="startServices" name="Start and Test Services">
+    <server-task id="start" name="Start Services">
+      <implementation class="org.apache.ambari.server.workflow.task.StartServices">
+        <parameter name="test">true</parameter>
+      </implementation>
+    </server-task>
+  </process>
+
+</process-flow>

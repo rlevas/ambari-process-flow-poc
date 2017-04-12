@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<persistence xmlns="http://java.sun.com/xml/ns/persistence" version="2.0">
+  <persistence-unit name="process_flow_poc" transaction-type="RESOURCE_LOCAL">
+    <provider>org.eclipse.persistence.jpa.PersistenceProvider</provider>
+    <class>org.apache.ambari.processflow.orm.entities.ProcessFlowEntity</class>
+    <class>org.apache.ambari.processflow.orm.entities.ProcessEntity</class>
+    <class>org.apache.ambari.processflow.orm.entities.TaskEntity</class>
+    <class>org.apache.ambari.processflow.orm.entities.ServerTaskEntity</class>
+    <class>org.apache.ambari.processflow.orm.entities.UserTaskEntity</class>
+    <class>org.apache.ambari.processflow.orm.entities.ProcessFlowInstanceEntity</class>
+    <class>org.apache.ambari.processflow.orm.entities.ProcessInstanceEntity</class>
+    <class>org.apache.ambari.processflow.orm.entities.TaskInstanceEntity</class>
+  </persistence-unit>
+</persistence>

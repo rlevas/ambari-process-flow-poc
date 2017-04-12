@@ -1,0 +1,177 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<process-flow id="enableNNHA" name="Enable NN HA">
+  <process id="gettingStarted" name="Getting Started">
+    <user-task id="gettingStarted" name="Getting Started">
+      <fields>
+        <field name="name_service_id" type="String"/>
+      </fields>
+    </user-task>
+  </process>
+
+  <process id="stopHBase" name="Stop HBase">
+    <condition>Services.contains("HBASE")</condition>
+    <server-task id="stop" name="Stop HBase">
+      <implementation class="org.apache.ambari.server.workflow.task.StopService">
+        <parameter name="service">HBASE</parameter>
+      </implementation>
+    </server-task>
+  </process>
+
+  <process id="selectHosts" name="Select Hosts">
+    <user-task id="select" name="Select Hosts">
+      <fields>
+        <field name="original_nn_host" type="String"/>
+        <field name="additional_nn_host" type="String"/>
+        <field name="jn_hosts" type="String"/>
+      </fields>
+    </user-task>
+  </process>
+
+  <process id="configureJN" name="Configure Journal Nodes">
+    <user-task id="configure" name="Configure Journal Nodes">
+      <fields>
+        <field name="dfs.journalnode.edits.dir" type="String">/hadoop/hdfs/journal</field>
+      </fields>
+    </user-task>
+  </process>
+
+  <process id="confirm" name="Confirm Configuration">
+    <user-task id="confirmConfiguration" name="Confirm Configuration"/>
+  </process>
+
+  <process id="createCheckpoint" name="Create Checkpoint">
+    <user-task id="create" name="Create Checkpoint">
+      <description>
+        Login to the NameNode host ORIGINAL NN HOST.
+        Put the NameNode in Safe Mode (read-only mode):
+        sudo su hdfs -l -c 'hdfs dfsadmin -safemode enter'
+        Once in Safe Mode, create a Checkpoint:
+        sudo su hdfs -l -c 'hdfs dfsadmin -saveNamespace'
+      </description>
+    </user-task>
+  </process>
+
+  <process id="verifyCheckpoint" name="Verify Checkpoint">
+    <server-task id="verify" name="Verify Checkpoint">
+      <implementation
+        class="org.apache.ambari.server.workflow.task.hdfs.VerifyCheckpointCreated"/>
+    </server-task>
+  </process>
+
+  <process id="configureComponents" name="Configure Components">
+    <server-task id="stop" name="Stop Services">
+      <implementation class="org.apache.ambari.server.workflow.task.StopServices"/>
+    </server-task>
+    <server-task id="installNN" name="Install Additional NameNode">
+      <implementation class="org.apache.ambari.server.workflow.task.InstallComponent">
+        <parameter name="service">HDFS</parameter>
+        <parameter name="component">NAMENODE</parameter>
+        <parameter name="hosts">eval:InstanceData["additional_nn_host"]</parameter>
+      </implementation>
+    </server-task>
+    <server-task id="install" name="Install Journal Nodes">
+      <implementation class="org.apache.ambari.server.workflow.task.InstallComponent">
+        <parameter name="service">HDFS</parameter>
+        <parameter name="component">JOURNALNODE</parameter>
+        <parameter name="hosts">eval:InstanceData["jn_hosts"]</parameter>
+      </implementation>
+    </server-task>
+    <server-task id="reconfigure" name="Reconfigure HDFS">
+      <implementation class="org.apache.ambari.server.workflow.task.hdfs.ReconfigureHDFS">
+        <parameter name="service">HDFS</parameter>
+      </implementation>
+    </server-task>
+    <server-task id="start" name="Start Journal Nodes">
+      <implementation class="org.apache.ambari.server.workflow.task.StartComponent">
+        <parameter name="service">HDFS</parameter>
+        <parameter name="component">JOURNALNODE</parameter>
+        <parameter name="hosts">eval:InstanceData["jn_hosts"]</parameter>
+      </implementation>
+    </server-task>
+    <server-task id="disableSecondaryNN" name="Disable Secondary NameNode">
+      <implementation
+        class="org.apache.ambari.server.workflow.task.hdfs.DisableSecondaryNameNode"/>
+    </server-task>
+  </process>
+
+  <process id="initJN" name="Initialize Journal Nodes">
+    <user-task id="init" name=" Initialize Journal Nodes">
+      <description>
+        Login to the NameNode host ORIGINAL NN HOST.
+        Initialize the JournalNodes by running:
+        sudo su hdfs -l -c 'hdfs namenode -initializeSharedEdits'
+      </description>
+    </user-task>
+  </process>
+
+  <process id="verifyJN" name="Verify Journal Nodes">
+    <server-task id="verify" name="Verify Initialized Journal Nodes">
+      <implementation
+        class="org.apache.ambari.server.workflow.task.hdfs.VerifyJNInitialized"/>
+    </server-task>
+  </process>
+
+  <process id="startComponents" name="Start Components">
+    <server-task id="startZK" name="Start Zookeeper Servers">
+      <implementation class="org.apache.ambari.server.workflow.task.StartComponent">
+        <parameter name="service">ZOOKEEPER</parameter>
+        <parameter name="component">ZOOKEEPER_SERVER</parameter>
+        <parameter name="hosts">*</parameter>
+      </implementation>
+    </server-task>
+    <server-task id="startNN" name="Start NameNode">
+      <implementation class="org.apache.ambari.server.workflow.task.StartComponent">
+        <parameter name="service">HDFS</parameter>
+        <parameter name="component">NAMENODE</parameter>
+        <parameter name="hosts">eval:InstanceData["original_nn_host"]</parameter>
+      </implementation>
+    </server-task>
+  </process>
+
+  <process id="initMetadata" name="Initialize Metadata">
+    <user-task id="init" name="Initialize Metadata">
+      <description>
+        Login to the NameNode host ORIGINAL NN HOST.
+        Initialize the metadata for NameNode automatic failover by running:
+        sudo su hdfs -l -c 'hdfs zkfc -formatZK'
+
+        Login to the Additional NameNode host NEW NN HOST.
+        Important! Be sure to login to the Additional NameNode host.
+        This is a different host from the Steps 1 and 2 above.
+        Initialize the metadata for the Additional NameNode by running:
+        sudo su hdfs -l -c 'hdfs namenode -bootstrapStandby'
+      </description>
+    </user-task>
+  </process>
+
+  <process id="finalize" name="Finalize HA Setup">
+    <server-task id="startNN" name="Start Additional NameNode">
+      <implementation class="org.apache.ambari.server.workflow.task.StartComponent">
+        <parameter name="service">HDFS</parameter>
+        <parameter name="component">NAMENODE</parameter>
+        <parameter name="hosts">eval:InstanceData["additional_nn_host"]</parameter>
+      </implementation>
+    </server-task>
+    <server-task id="installFailover" name="Install Failover Controllers">
+      <implementation class="org.apache.ambari.server.workflow.task.hdfs.InstallFailoverController" />
+    </server-task>
+    <server-task id="startFailover" name="Start Failover Controllers">
+      <implementation class="org.apache.ambari.server.workflow.task.hdfs.StartFailoverController" />
+    </server-task>
+    <server-task id="reconfigure" name="Reconfigure AMS">
+      <implementation class="org.apache.ambari.server.workflow.task.hdfs.ReconfigureAMS"/>
+    </server-task>
+    <server-task id="removeSecondaryNN" name="Remove Secondary NameNode">
+      <implementation class="org.apache.ambari.server.workflow.task.hdfs.DeleteSecondaryNameNode"/>
+    </server-task>
+    <server-task id="stopHDFS" name="Stop HDFS">
+      <implementation class="org.apache.ambari.server.workflow.task.StopService">
+        <parameter name="service">HDFS</parameter>
+      </implementation>
+    </server-task>
+    <server-task id="start" name="Start All Services">
+      <implementation class="org.apache.ambari.server.workflow.task.StartServices"/>
+    </server-task>
+  </process>
+
+</process-flow>
