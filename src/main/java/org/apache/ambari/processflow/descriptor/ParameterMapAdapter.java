@@ -1,6 +1,5 @@
 package org.apache.ambari.processflow.descriptor;
 
-import java.util.List;
 import java.util.Map;
 
 import javax.xml.bind.annotation.adapters.XmlAdapter;

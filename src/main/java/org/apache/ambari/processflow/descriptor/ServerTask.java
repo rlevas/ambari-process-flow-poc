@@ -46,10 +46,10 @@ public class ServerTask extends Task {
   @XmlAccessorType(XmlAccessType.FIELD)
   public static class Implementation {
     @XmlAttribute(name = "class")
-    String className;
+    private String className = null;
 
     @XmlElement(name = "parameter")
-    private List<Parameter> parameters;
+    private List<Parameter> parameters = null;
 
     public String getClassName() {
       return className;

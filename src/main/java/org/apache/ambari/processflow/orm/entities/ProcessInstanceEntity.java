@@ -1,7 +1,6 @@
 package org.apache.ambari.processflow.orm.entities;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 
 import javax.persistence.Basic;

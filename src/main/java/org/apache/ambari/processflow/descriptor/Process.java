@@ -30,7 +30,14 @@ public class Process {
   @XmlElements(
       {
           @XmlElement(name = "user-task", type = UserTask.class),
-          @XmlElement(name = "server-task", type = ServerTask.class)
+          @XmlElement(name = "server-task", type = ServerTask.class),
+          @XmlElement(name = "stop-service-task", type = StopServiceTask.class),
+          @XmlElement(name = "start-service-task", type = StartServiceTask.class),
+          @XmlElement(name = "stop-component-task", type = StopComponentTask.class),
+          @XmlElement(name = "start-component-task", type = StartComponentTask.class),
+          @XmlElement(name = "install-component-task", type = InstallComponentTask.class),
+          @XmlElement(name = "stop-all-services-task", type = StopAllServicesTask.class),
+          @XmlElement(name = "start-all-services-task", type = StartAllServicesTask.class)
       }
   )
   private List<? extends Task> tasks;

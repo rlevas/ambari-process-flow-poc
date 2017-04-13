@@ -1,12 +1,5 @@
 package org.apache.ambari.processflow;
 
-import java.util.Properties;
-
-import com.google.inject.persist.jpa.PFPOCJpaPersistModule;
-
-import com.google.inject.AbstractModule;
-import com.google.inject.Module;
-
 import static org.eclipse.persistence.config.PersistenceUnitProperties.CREATE_JDBC_DDL_FILE;
 import static org.eclipse.persistence.config.PersistenceUnitProperties.CREATE_ONLY;
 import static org.eclipse.persistence.config.PersistenceUnitProperties.DDL_BOTH_GENERATION;
@@ -18,6 +11,12 @@ import static org.eclipse.persistence.config.PersistenceUnitProperties.JDBC_PASS
 import static org.eclipse.persistence.config.PersistenceUnitProperties.JDBC_URL;
 import static org.eclipse.persistence.config.PersistenceUnitProperties.JDBC_USER;
 import static org.eclipse.persistence.config.PersistenceUnitProperties.THROW_EXCEPTIONS;
+
+import java.util.Properties;
+
+import com.google.inject.AbstractModule;
+import com.google.inject.Module;
+import com.google.inject.persist.jpa.PFPOCJpaPersistModule;
 
 public class ControllerModule extends AbstractModule {
   private static final String DEFAULT_DERBY_SCHEMA = "ambari";

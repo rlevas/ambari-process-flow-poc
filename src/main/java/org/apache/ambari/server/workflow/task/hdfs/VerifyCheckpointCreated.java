@@ -1,13 +1,11 @@
 package org.apache.ambari.server.workflow.task.hdfs;
 
 import java.util.Map;
-import java.util.Set;
 
 import org.apache.ambari.server.workflow.AmbariHelper;
 import org.apache.ambari.server.workflow.FlowContext;
 import org.apache.ambari.server.workflow.task.ServerTask;
 
-import com.google.gson.Gson;
 import com.google.inject.Inject;
 
 public class VerifyCheckpointCreated implements ServerTask {

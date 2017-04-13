@@ -169,6 +169,24 @@ public class AmbariHelper {
     }
   }
 
+  public void stopComponent(String hostname, String component) throws InterruptedException, HttpResponseException {
+    stopComponent(new String[]{hostname}, component);
+  }
+
+  public void stopComponent(String[] hostNames, String component) throws InterruptedException, HttpResponseException {
+    if (ambariClient != null) {
+      List<Integer> requestIds = new ArrayList<>(hostNames.length);
+
+      for (String hostName : hostNames) {
+        requestIds.add(ambariClient.stopComponentsOnHost(hostName.trim(), Collections.singletonList(component)).get(component));
+      }
+
+      for (Integer requestId : requestIds) {
+        waitForRequest(requestId);
+      }
+    }
+  }
+
   public Map<String, String> getConfiguration(String configType) {
 
     Map<String, String> configMap = null;

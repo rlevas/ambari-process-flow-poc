@@ -1,7 +1,6 @@
 package org.apache.ambari.server.workflow.task.hdfs;
 
 import java.util.Map;
-import java.util.Set;
 
 import org.apache.ambari.server.workflow.AmbariHelper;
 import org.apache.ambari.server.workflow.FlowContext;
